@@ -1,5 +1,9 @@
 name: Build artifacts
-on: workflow_dispatch
+on:
+  push:
+    branch:
+      - 'ci-test'
+  workflow_dispatch:
 
 jobs:
   build:
