@@ -1,5 +1,5 @@
 use crate::core::uad_lists::PackageState;
-use crate::gui::views::settings::Settings;
+use crate::gui::views::settings::Phone as SettingsPhone;
 use crate::gui::widgets::package_row::PackageRow;
 use regex::Regex;
 use static_init::dynamic;
@@ -9,6 +9,9 @@ use std::process::Command;
 
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
+
+#[dynamic]
+static RE: Regex = Regex::new(r"\n([[:ascii:]]+)\s+device").unwrap();
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Phone {
@@ -31,7 +34,7 @@ impl Default for Phone {
 
 impl std::fmt::Display for Phone {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.model.to_string(),)
+        write!(f, "{}", self.model,)
     }
 }
 
@@ -43,7 +46,7 @@ pub struct User {
 
 impl std::fmt::Display for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", format!("user {}", self.id),)
+        write!(f, "user {}", self.id)
     }
 }
 
@@ -120,16 +123,25 @@ pub fn action_handler(
     selected_user: &User,
     package: &PackageRow,
     phone: &Phone,
-    settings: &Settings,
-) -> Result<bool, bool> {
-    let actions: Vec<String> = match package.state {
+    settings: &SettingsPhone,
+) -> Vec<String> {
+    // https://github.com/0x192/universal-android-debloater/wiki/ADB-reference
+    match package.state {
         PackageState::Enabled => match settings.disable_mode {
             true => {
-                if phone.android_sdk < 21 {
+                // < Android Ice Cream Sandwich (4.0)
+                if phone.android_sdk < 14 {
                     vec![
-                        format!("am force-stop {}", package.name),
+                        format!("pm disable {}", package.name),
+                        format!("pm clear {}", package.name),
+                    ]
+                }
+                // < Android Lollipop (5.0)
+                else if phone.android_sdk < 17 {
+                    vec![
                         format!("pm disable-user {}", package.name),
                         format!("pm clear {}", package.name),
+                        format!("pm hide {}", package.name),
                     ]
                 } else if settings.multi_user_mode {
                     phone
@@ -137,15 +149,15 @@ pub fn action_handler(
                         .iter()
                         .flat_map(|u| {
                             [
-                                format!("am force-stop --user {} {}", u.id, package.name),
                                 format!("pm disable-user --user {} {}", u.id, package.name),
+                                format!("am force-stop --user {} {}", u.id, package.name),
                                 format!("pm clear --user {} {}", u.id, package.name),
+                                //format!("pm hide --user {} {}", u.id, package.name),
                             ]
                         })
                         .collect()
                 } else {
                     vec![
-                        format!("am force-stop --user {} {}", selected_user.id, package.name),
                         format!(
                             "pm disable-user --user {} {}",
                             selected_user.id, package.name
@@ -209,23 +221,7 @@ pub fn action_handler(
             }
         }
         PackageState::All => vec![], // This can't happen (like... never)
-    };
-
-    for action in actions {
-        match adb_shell_command(true, &action) {
-            Ok(_) => {
-                info!("[{}] {}", package.removal, action);
-            }
-            Err(err) => {
-                if err.contains("[not installed for") {
-                } else {
-                    error!("[{}] {} -> {}", package.removal, action, err);
-                    return Err(false);
-                }
-            }
-        }
     }
-    Ok(true)
 }
 
 pub fn get_phone_model() -> String {
@@ -275,15 +271,13 @@ pub fn get_user_list() -> Vec<User> {
     }
 }
 
-pub fn get_device_list() -> Vec<Phone> {
-    #[dynamic]
-    static RE: Regex = Regex::new(r"\n([[:alnum:]]+)\s+device").unwrap();
-
+// getprop ro.serialno
+pub async fn get_device_list() -> Vec<Phone> {
     match adb_shell_command(false, "devices") {
         Ok(devices) => {
             let mut device_list: Vec<Phone> = vec![];
             for device in RE.captures_iter(&devices) {
-                env::set_var("ANDROID_SERIAL", device[1].to_string());
+                env::set_var("ANDROID_SERIAL", &device[1]);
 
                 device_list.push(Phone {
                     model: get_phone_brand(),

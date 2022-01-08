@@ -1694,7 +1694,7 @@
   {
     "id": "com.baidu.input_huawei",
     "list": "Oem",
-    "description": "Woh! 51 permissions! \nHuawei chinese stock input keyboard.\n",
+    "description": "Woh! 51 permissions! \nHuawei chinese stock input keyboard. You probably shouldn't trust this closed-source keyboard with this much permissions...NOTE: Make sure to have another keyboard installed before removing this package!\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -2180,7 +2180,7 @@
   {
     "id": "com.huawei.parentcontrol",
     "list": "Oem",
-    "description": "Parental controls functions.\n",
+    "description": "Parental controls functions.\nIt seems Huawei can prevent to remove packages. Uninstalling (or even disabling) this package returns an error: Failure [DELETE_FAILED_INTERNAL_ERROR] (not allowed to disable this package).\n See https://github.com/0x192/universal-android-debloater/issues/51",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -2315,7 +2315,7 @@
   {
     "id": "com.huawei.android.thememanager",
     "list": "Oem",
-    "description": "Huawei Themes (https://play.google.com/store/apps/details?id=com.huawei.android.thememanager)\nLets you use Huawei themes\nYou should still be able to set wallapers without it. Can someone check?\n",
+    "description": "Huawei Themes (https://play.google.com/store/apps/details?id=com.huawei.android.thememanager)\nLets you use Huawei themes\nSetting Wallpapers directly will no longer work, but the Wallpaper entry in the Settings app will still let you choose wallpapers.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -6149,11 +6149,11 @@
   {
     "id": "com.samsung.android.honeyboard",
     "list": "Oem",
-    "description": "Samsung keyboard\nWARNING: do NOT remove the samsung keyboard if you don't have another keyboard with direct boot mode support or \nyou'll be stuck at boot (no keyboard to unlock the phone) \nhttps://developer.android.com/training/articles/direct-boot\nFYI: Simple Keyboard and OpenBoard are 2 FOSS keyboard with direct boot support\nhttps://f-droid.org/packages/org.dslul.openboard.inputmethod.latin/\nhttps://f-droid.org/packages/rkr.simplekeyboard.inputmethod/\nWARNING: Do NOT remove this package with root if it wasn't first uninstalled with the non-root method.\n",
+    "description": "Samsung keyboard\nWARNING: do NOT remove the samsung keyboard if you don't have another keyboard with direct boot mode support or \nyou'll be stuck at boot (no keyboard to unlock the phone) \nhttps://developer.android.com/training/articles/direct-boot\nFYI: Simple Keyboard and OpenBoard are 2 FOSS keyboard with direct boot support\nhttps://f-droid.org/packages/org.dslul.openboard.inputmethod.latin/\nhttps://f-droid.org/packages/rkr.simplekeyboard.inputmethod/\nWARNING: Do NOT remove this package with root if it wasn't first uninstalled with the non-root method.\nWARNING: Removing this packages breaks the Accessibility settings on Android 11",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Recommended"
+    "removal": "Expert"
   },
   {
     "id": "com.sec.android.mimage.photoretouching",
@@ -6864,7 +6864,7 @@
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Advanced"
+    "removal": "Expert"
   },
   {
     "id": "com.android.internal.display.cutout.emulation.tall",
@@ -7094,7 +7094,7 @@
   {
     "id": "com.android.theme.icon_pack.rounded.systemui",
     "list": "Aosp",
-    "description": "Android themes / icons pack / fonts\n",
+    "description": "Android icons pack [Rounded].\nYou can safely remove them if you don't use them. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -8218,21 +8218,21 @@
   },
   {
     "id": "com.android.theme.icon.circle",
-    "list": "Pending",
-    "description": "",
+    "list": "Aosp",
+    "description": "Android icons pack [Circle].\nYou can safely remove them if you don't use them. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Expert"
+    "removal": "Advanced"
   },
   {
     "id": "com.android.theme.icon.square",
-    "list": "Pending",
-    "description": "",
+    "list": "Aosp",
+    "description": "Android icons pack [Square].\nYou can safely remove them if you don't use them. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Expert"
+    "removal": "Advanced"
   },
   {
     "id": "com.example.rftuner",
@@ -9100,39 +9100,39 @@
   },
   {
     "id": "com.android.theme.icon.pebble",
-    "list": "Pending",
-    "description": "",
+    "list": "Aosp",
+    "description": "Android icons pack [Pebble].\nYou can safely remove them if you don't use them. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Expert"
+    "removal": "Advanced"
   },
   {
     "id": "com.android.theme.icon.taperedrect",
-    "list": "Pending",
-    "description": "",
+    "list": "Aosp",
+    "description": "Android icons pack [Taperedrect].\nYou can safely remove them if you don't use them. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Expert"
+    "removal": "Advanced"
   },
   {
     "id": "com.android.theme.icon.vessel",
-    "list": "Pending",
-    "description": "",
+    "list": "Aosp",
+    "description": "Android icons pack [Vessel].\nYou can safely remove them if you don't use them. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Expert"
+    "removal": "Advanced"
   },
   {
     "id": "com.android.theme.icon_pack.rounded.themepicker",
-    "list": "Pending",
-    "description": "",
+    "list": "Aosp",
+    "description": "Obviously related to the \"rounded\" icon pack but the full package is strange. A themepicker class only for a specific icon package?\n\nYou can safely remove them if you don't use any icon packs. But there is no real point in doing so.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Expert"
+    "removal": "Advanced"
   },
   {
     "id": "com.google.android.apps.carrier.carrierwifi",
@@ -11166,7 +11166,7 @@
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Recommended"
+    "removal": "Expert"
   },
   {
     "id": "com.lge.ime.solution.handwriting",
@@ -11639,7 +11639,7 @@
   {
     "id": "com.lge.theme.titan",
     "list": "Oem",
-    "description": "LG Update Center\nProvide Android upgrade and LG updates (Settings --> System --> Update Center)\nI believe you won't receive any updates if this packages is deleted.\n\n    #\"com.lge.theme.highcontrast\"\nVarious themes. Safe to remove any you don't want/use. I could not find the package for the default (LG) theme.\nMake sure you don't delete the package for the theme you're currently using. I don't know what will happen then.\n",
+    "description": "LG Titan theme (labelled 'Platinum' in the theming app).\nSafe to remove if you really want to.\nI could not find the package for the default (LG) theme.\nMake sure you don't delete the package for the theme you're currently using. I don't know what will happen then.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -13898,11 +13898,11 @@
   {
     "id": "com.touchtype.swiftkey.res.overlay",
     "list": "Misc",
-    "description": "Swiftkey Keyboard (https://play.google.com/store/apps/details?id=com.touchtype.swiftkey)\nKeyboard app developed by TouchType, a Microsoft subsidiary (https://en.wikipedia.org/wiki/SwiftKey)\nSends \"anonymous\" to Microsoft.\n4 Trackers + 11 Permissions : https://reports.exodus-privacy.eu.org/en/reports/com.touchtype.swiftkey/latest/\nNOTE : default keyboard on some Nokia and Huawei phones\n",
+    "description": "Swiftkey Keyboard (https://play.google.com/store/apps/details?id=com.touchtype.swiftkey)\nKeyboard app developed by TouchType, a Microsoft subsidiary (https://en.wikipedia.org/wiki/SwiftKey)\nSends \"anonymous\" to Microsoft.\n4 Trackers + 11 Permissions : https://reports.exodus-privacy.eu.org/en/reports/com.touchtype.swiftkey/latest/\nNOTE : default keyboard on some Nokia and Huawei phones. Make sure to have another keyboard before removing this package.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Recommended"
+    "removal": "Expert"
   },
   {
     "id": "com.tracker.t",
@@ -14420,11 +14420,11 @@
   {
     "id": "com.baidu.input_mi",
     "list": "Oem",
-    "description": "Baidu IME (Baidu keyboard)\nYOU SHOULD NEVER USE A CLOSED-SOURCE KEYBOARD ! \nhttps://www.techrepublic.com/blog/asian-technology/japanese-government-warns-baidu-ime-is-spying-on-users/\nArchive : https://web.archive.org/save/https://www.techrepublic.com/blog/asian-technology/japanese-government-warns-baidu-ime-is-spying-on-users/\n",
+    "description": "Baidu IME (Baidu keyboard)\nYOU SHOULD NEVER USE A CLOSED-SOURCE KEYBOARD ! \nhttps://www.techrepublic.com/blog/asian-technology/japanese-government-warns-baidu-ime-is-spying-on-users/\nArchive : https://web.archive.org/save/https://www.techrepublic.com/blog/asian-technology/japanese-government-warns-baidu-ime-is-spying-on-users/\nNOTE: Make sure you have installed another keyboard before removing this package.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Recommended"
+    "removal": "Advanced"
   },
   {
     "id": "com.baidu.searchbox",
@@ -15563,7 +15563,7 @@
   {
     "id": "com.android.thememanager",
     "list": "Oem",
-    "description": "MIUI Themes (manager)\nXiaomi seems to love confusing package name\nThis package lets you select and apply themes provided by Xiaomi. \nThere is a strong likelihood that removing this package will disable the ability to change wallpapers. \nCan someone test?\n",
+    "description": "MIUI Themes (manager)\nXiaomi seems to love confusing package name\nThis package lets you select and apply themes provided by Xiaomi.\nRemoving this package will disable the ability to change wallpapers on the lock screen.\nFor changing wallpapers on the home screen you will need to use another app.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -15572,11 +15572,11 @@
   {
     "id": "com.android.thememanager.module",
     "list": "Oem",
-    "description": "I don't have the .apk but it is obviously related to \"com.android.thememanager\"\nCan someone test with this package too?\n",
+    "description": "It is obviously related to \"com.android.thememanager\" but not needed for changing wallpapers.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Advanced"
+    "removal": "Recommended"
   },
   {
     "id": "com.fido.xiaomi.uafclient",
@@ -15734,7 +15734,7 @@
   {
     "id": "com.miui.guardprovider",
     "list": "Oem",
-    "description": "Guard Provider security app\nThe app includes 3 different antivirus brands built in that the user can choose (Avast, AVL and Tencent). \nThis app notably perform a virus scan of any apps you want to install. \nA serious vulnerability was found in 2019\nWorth reading : https://research.checkpoint.com/2019/vulnerability-in-xiaomi-pre-installed-security-app/\nYou may want to remove this app from a privacy stance.\nhttps://beta.pithus.org/report/797a7e405bc8e767deebbbcab3e06a19b05156de44292c918b582dff3078d7b8\nNOTE: It's seems removing this package break app installation.\n",
+    "description": "Guard Provider security app\nThe app includes 3 different antivirus brands built in that the user can choose (Avast, AVL and Tencent). \nThis app notably perform a virus scan of any apps you want to install. \nA serious vulnerability was found in 2019\nWorth reading : https://research.checkpoint.com/2019/vulnerability-in-xiaomi-pre-installed-security-app/\nYou may want to remove this app from a privacy stance.\nhttps://beta.pithus.org/report/797a7e405bc8e767deebbbcab3e06a19b05156de44292c918b582dff3078d7b8\nIMPORTANT NOTE: Removing this package will very likely break any app installation/update.\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -15779,7 +15779,7 @@
   {
     "id": "com.xiaomi.miplay_client",
     "list": "Oem",
-    "description": "MiPlay Client\nProvides support for Miracast?\nhttps://en.wikipedia.org/wiki/Miracast\nMy guess is it provides the Wireless Display feature (Settings - Connection & sharing - Cast)\nCan someone confirm?\n)\n",
+    "description": "MiPlay Client\nProvides support for Miracast?\nhttps://en.wikipedia.org/wiki/Miracast\nMy guess is it provides the Wireless Display feature (Settings - Connection & sharing - Cast)\nCan someone confirm?\n\n",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
@@ -17057,11 +17057,11 @@
   {
     "id": "com.android.vending",
     "list": "Google",
-    "description": "I'm not sure if you can delete Google keyboard on Google phone without having issue to unlock your phone on boot.\nIf someone can test it, that will be great ! :D\n",
+    "description": "Google Play Store app",
     "dependencies": null,
     "neededBy": null,
     "labels": null,
-    "removal": "Advanced"
+    "removal": "Expert"
   },
   {
     "id": "com.google.android.inputmethod.latin",
@@ -18623,7 +18623,7 @@
   {
     "id": "com.lge.theme.black",
     "list": "Oem",
-    "description": "LG Android theme",
+    "description": "LG Black theme.\nSafe to remove if you really want to.\nI could not find the package for the default (LG) theme.\nMake sure you don't delete the package for the theme you're currently using. I don't know what will happen then.\n",
     "dependencies": null,
     "neededBy": "",
     "labels": null,
@@ -18632,7 +18632,7 @@
   {
     "id": "com.lge.theme.white",
     "list": "Oem",
-    "description": "LG Android theme",
+    "description": "LG White theme.\nSafe to remove if you really want to.\nI could not find the package for the default (LG) theme.\nMake sure you don't delete the package for the theme you're currently using. I don't know what will happen then.\n",
     "dependencies": null,
     "neededBy": "",
     "labels": null,
@@ -18641,8 +18641,8 @@
   {
     "id": "com.lge.theme.highcontrast",
     "list": "Oem",
-    "description": "LG Android theme",
-    "dependencies": "LG theme",
+    "description": "LG High Contrast theme.\nSafe to remove if you really want to.\nI could not find the package for the default (LG) theme.\nMake sure you don't delete the package for the theme you're currently using. I don't know what will happen then.\n",
+    "dependencies": null,
     "neededBy": "",
     "labels": null,
     "removal": "Advanced"
@@ -18754,6 +18754,24 @@
     "neededBy": null,
     "labels": null,
     "removal": "Recommended"
+  },
+  {
+    "id": "android",
+    "list": "Aosp",
+    "description": "Android UI ressource library. Provide all the elements of the User Interface. DO NOT REMOVE THIS!",
+    "dependencies": null,
+    "neededBy": null,
+    "labels": null,
+    "removal": "Unsafe"
+  },
+  {
+    "id": "com.android.phone",
+    "list": "Aosp",
+    "description": "AOSP Dialer",
+    "dependencies": null,
+    "neededBy": null,
+    "labels": null,
+    "removal": "Unsafe"
   }
 ]
 

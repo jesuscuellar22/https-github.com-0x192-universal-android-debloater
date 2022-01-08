@@ -10,15 +10,21 @@ and `Removed`.
 
 ## [Unreleased]
 
-
 ### Added
-- [[#52](https://github.com/0x192/universal-android-debloater/issues/52)] Added `uk.co.ee.myee` to the debloat lists  (thanks [@lawson58](https://github.com/lawson85))
+- [[#52](https://github.com/0x192/universal-android-debloater/issues/52)] `uk.co.ee.myee` to the debloat lists  (thanks [@lawson58](https://github.com/lawson85)).
+- [[#58](https://github.com/0x192/universal-android-debloater/issues/52)] `android` to the debloat lists with the tag `Unsafe`.
+- [[#49](https://github.com/0x192/universal-android-debloater/issues/49)] Multi-device support: You are now able to select a device among the list of all ADB connected devices/emulators.
+- [[#44](https://github.com/0x192/universal-android-debloater/issues/44)] Persistent settings: Settings (only `theme` for now) are saved to a config file. Its location follows [the standards of the different platforms](https://github.com/dirs-dev/dirs-rs#example).
 
 ### Changed
-- Review of the package lists recommendations. The `Recommended` debloat list is now safer (less likely to remove something you'd want to keep)
+- Review of the package lists recommendations. The `Recommended` debloat list is now safer (less likely to remove something you'd want to keep).
+- [[#65](https://github.com/0x192/universal-android-debloater/issues/65)] ADB commands now run in parallel and asynchronously! This means no more UI freeze when performing long/many actions! :rocket:
+- UI now updates itself in real time when performing ADB actions (thanks to async & multithreading). Before, it waited for the end of all actions.
 
 ### Fixed
-- Miscellaneous minor issues in some package descriptions
+- Miscellaneous minor issues in some package descriptions.
+- Several bad recommendations.
+- [[#50](https://github.com/0x192/universal-android-debloater/issues/50)] Resync button flipping theme back to `Lupin`.
 
 ## [0.3] - 2021-10-10
 
@@ -33,7 +39,7 @@ and `Removed`.
 - [Regression] Unsafe packages can be deleted without enabling `expert mode`.
 - The refresh button doesn't update settings when a (new) phone is connected.
 - [Regression] Restore buttons are disabled when connecting an Android 8.0 phone.
-- [[#17](https://github.com/0x192/universal-android-debloater/issues/17)] Refresh icon does not appear
+- [[#17](https://github.com/0x192/universal-android-debloater/issues/17)] Refresh icon does not appear.
 
 ## [0.2.2] - 2021-09-30
 

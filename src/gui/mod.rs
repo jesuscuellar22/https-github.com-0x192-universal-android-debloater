@@ -8,7 +8,9 @@ use crate::core::utils::icon;
 use std::env;
 pub use views::about::About as AboutView;
 pub use views::list::{List as AppsView, Message as AppsMessage};
-pub use views::settings::{Message as SettingsMessage, Settings as SettingsView};
+pub use views::settings::{
+    Message as SettingsMessage, Phone as SettingsPhone, Settings as SettingsView,
+};
 
 use iced::{
     button, pick_list, window::Settings as Window, Alignment, Application, Button, Column, Command,
@@ -45,7 +47,7 @@ pub struct UadGui {
     apps_refresh_btn: button::State,
     device_picklist: pick_list::State<Phone>,
     device_list: Vec<Phone>,
-    selected_device: Phone,
+    selected_device: Option<Phone>,
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +62,8 @@ pub enum Message {
     AppsAction(AppsMessage),
     SettingsAction(SettingsMessage),
     RefreshButtonPressed,
-    Init,
+    LoadDeviceList(Vec<Phone>),
+    Init(Vec<Phone>),
 }
 
 impl Application for UadGui {
@@ -71,44 +74,62 @@ impl Application for UadGui {
     fn new(_flags: ()) -> (Self, Command<Message>) {
         (
             Self::default(),
-            Command::perform(Self::init(), |_| Message::Init),
+            Command::perform(get_device_list(), Message::Init),
         )
     }
 
     fn title(&self) -> String {
-        String::from("UadGui")
+        String::from("Universal Android Debloater")
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Init => Command::perform(Self::refresh(10), Message::LoadDevices),
-            Message::RefreshButtonPressed => {
+            Message::Init(device_list) => {
+                self.device_list = device_list;
+                self.selected_device = Some(Phone::default());
+                Command::perform(Self::refresh(10), Message::LoadDevices)
+            }
+            Message::LoadDeviceList(device_list) => {
+                self.device_list = device_list;
+
                 // Save the current selected device
                 let i = self
                     .device_list
                     .iter()
-                    .position(|phone| *phone == self.selected_device)
-                    .unwrap();
-                self.device_list = vec![Phone::default()];
-                self.selected_device = self.device_list[0].clone();
+                    .position(|phone| *phone == self.selected_device.clone().unwrap_or_default())
+                    .unwrap_or(0);
+                self.selected_device = Some(Phone::default());
                 Command::perform(Self::refresh(i), Message::LoadDevices)
             }
-            Message::LoadDevices(old_selected_device) => {
-                self.settings_view = SettingsView::default();
-                self.device_list = get_device_list();
-                self.selected_device = match old_selected_device < self.device_list.len() {
-                    true => self.device_list[old_selected_device].clone(),
-                    false => self.device_list.last().unwrap().clone(),
-                };
-                env::set_var("ANDROID_SERIAL", self.selected_device.adb_id.clone());
-                info!("{:-^65}", "-");
-                info!(
-                    "ANDROID_SDK: {} | PHONE: {}",
-                    self.selected_device.android_sdk, self.selected_device.model
-                );
-                self.apps_view = AppsView::default();
-                self.view = View::List;
-                Command::perform(Self::load_phone_packages(), Message::AppsAction)
+            Message::RefreshButtonPressed => {
+                self.apps_view.ready = false;
+                Command::batch([
+                    Command::perform(Self::please_wait(), Message::AppsAction),
+                    Command::perform(Self::device_lists(), Message::LoadDeviceList),
+                ])
+            }
+            Message::LoadDevices(last_selected_device) => {
+                self.settings_view.phone = SettingsPhone::default();
+
+                // Try to reload last selected phone
+                if !self.device_list.is_empty() {
+                    self.selected_device = match last_selected_device < self.device_list.len() {
+                        true => Some(self.device_list[last_selected_device].clone()),
+                        false => match self.device_list.last() {
+                            Some(last) => Some(last.clone()),
+                            None => Some(Phone::default()),
+                        },
+                    };
+                    self.apps_view = AppsView::default();
+                    self.view = View::List;
+                    Command::perform(
+                        Self::load_phone_packages(self.selected_device.clone().unwrap()),
+                        Message::AppsAction,
+                    )
+                } else {
+                    self.selected_device = None;
+                    Command::none()
+                }
             }
             Message::AppsPress => {
                 self.view = View::List;
@@ -124,23 +145,24 @@ impl Application for UadGui {
             }
             Message::AppsAction(msg) => self
                 .apps_view
-                .update(&self.settings_view, &mut self.selected_device, msg)
+                .update(
+                    &self.settings_view.phone,
+                    &mut self.selected_device.clone().unwrap_or_default(),
+                    msg,
+                )
                 .map(Message::AppsAction),
             Message::SettingsAction(msg) => {
                 self.settings_view.update(msg);
                 Command::none()
             }
             Message::DeviceSelected(device) => {
-                self.selected_device = device;
-                env::set_var("ANDROID_SERIAL", self.selected_device.adb_id.clone());
-                info!("{:-^65}", "-");
-                info!(
-                    "ANDROID_SDK: {} | PHONE: {}",
-                    self.selected_device.android_sdk, self.selected_device.model
-                );
+                self.selected_device = Some(device);
                 self.apps_view = AppsView::default();
                 self.view = View::List;
-                Command::perform(Self::load_phone_packages(), Message::AppsAction)
+                Command::perform(
+                    Self::load_phone_packages(self.selected_device.clone().unwrap()),
+                    Message::AppsAction,
+                )
             }
         }
     }
@@ -156,14 +178,6 @@ impl Application for UadGui {
             .padding(5)
             .style(style::RefreshButton(self.settings_view.theme.palette));
 
-        let device_picklist = PickList::new(
-            &mut self.device_picklist,
-            &self.device_list,
-            Some(self.selected_device.clone()),
-            Message::DeviceSelected,
-        )
-        .style(style::PickList(self.settings_view.theme.palette));
-
         let uad_version = Text::new(env!("CARGO_PKG_VERSION"));
 
         let about_btn = Button::new(&mut self.about_btn, Text::new("About"))
@@ -176,17 +190,38 @@ impl Application for UadGui {
             .padding(5)
             .style(style::PrimaryButton(self.settings_view.theme.palette));
 
-        let row = Row::new()
-            .width(Length::Fill)
-            .align_items(Alignment::Center)
-            .spacing(10)
-            .push(apps_refresh_btn)
-            .push(device_picklist)
-            .push(Space::new(Length::Fill, Length::Shrink))
-            .push(uad_version)
-            .push(apps_btn)
-            .push(about_btn)
-            .push(settings_btn);
+        let device_picklist = PickList::new(
+            &mut self.device_picklist,
+            &self.device_list,
+            self.selected_device.clone(),
+            Message::DeviceSelected,
+        )
+        .style(style::PickList(self.settings_view.theme.palette));
+
+        let row = match self.selected_device {
+            Some(_) => Row::new()
+                .width(Length::Fill)
+                .align_items(Alignment::Center)
+                .spacing(10)
+                .push(apps_refresh_btn)
+                .push(device_picklist)
+                .push(Space::new(Length::Fill, Length::Shrink))
+                .push(uad_version)
+                .push(apps_btn)
+                .push(about_btn)
+                .push(settings_btn),
+            None => Row::new()
+                .width(Length::Fill)
+                .align_items(Alignment::Center)
+                .spacing(10)
+                .push(apps_refresh_btn)
+                .push(Text::new("no devices/emulators found"))
+                .push(Space::new(Length::Fill, Length::Shrink))
+                .push(uad_version)
+                .push(apps_btn)
+                .push(about_btn)
+                .push(settings_btn),
+        };
 
         let navigation_container = Container::new(row)
             .width(Length::Fill)
@@ -196,7 +231,10 @@ impl Application for UadGui {
         let main_container = match self.view {
             View::List => self
                 .apps_view
-                .view(&self.settings_view, &self.selected_device)
+                .view(
+                    &self.settings_view,
+                    &self.selected_device.clone().unwrap_or_default(),
+                )
                 .map(Message::AppsAction),
             View::About => self.about_view.view(&self.settings_view),
             View::Settings => self.settings_view.view().map(Message::SettingsAction),
@@ -225,16 +263,24 @@ impl UadGui {
         Self::run(settings).unwrap_err();
     }
 
-    pub async fn load_phone_packages() -> AppsMessage {
+    pub async fn load_phone_packages(phone: Phone) -> AppsMessage {
+        env::set_var("ANDROID_SERIAL", phone.adb_id);
+        info!("{:-^65}", "-");
+        info!(
+            "ANDROID_SDK: {} | PHONE: {}",
+            phone.android_sdk, phone.model
+        );
         AppsMessage::LoadPackages
-    }
-
-    pub async fn init() -> Message {
-        Message::Init
     }
 
     pub async fn refresh(i: usize) -> usize {
         i
+    }
+    pub async fn device_lists() -> Vec<Phone> {
+        get_device_list().await
+    }
+    pub async fn please_wait() -> AppsMessage {
+        AppsMessage::Nothing
     }
 }
 
