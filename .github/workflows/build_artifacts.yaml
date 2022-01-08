@@ -16,8 +16,8 @@ jobs:
             os: macos-latest
           - build_target: windows
             os: windows-latest
-          - graphics: -glow
-            renderer: opengl
+          - graphics: glow
+            renderer: "-opengl"
           - graphics: wgpu
             renderer: "''" # Vulkan but we don't want this in the binary filename
     steps:
