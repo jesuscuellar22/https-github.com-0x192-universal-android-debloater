@@ -39,8 +39,12 @@ jobs:
         with:
           command: build
           args: --release --features ${{ matrix.graphics }}
-      - name: Renaming binaries
-        run: rename uad_gui-${{ matrix.build_target }} uad_gui-${{ matrix.build_target }}-${{ matrix.renderer }} target/release/uad_gui*
+      - name: Renaming binaries [Windows]
+        if: matrix.os == 'windows-latest'
+        run: mv target/release/uad_gui.exe target/release/uad_gui-${{ matrix.build_target }}-${{ matrix.renderer }}.exe
+      - name: Renaming binaries [Others]
+        if: matrix.os != 'windows-latest'
+        run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.build_target }}-${{ matrix.renderer }}
       - name: Tarball Linux binaries
         if: matrix.os == 'ubuntu-latest'
         run: tar -czf uad_gui-linux-${{ matrix.renderer }}.tar.gz uad_gui-linux-${{ matrix.renderer }}
