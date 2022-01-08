@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         build_target: [linux, macos, windows]
-        renderer: ["''", opengl]
+        graphics: [glow, wgpu]
         include:
           - build_target: linux
             os: ubuntu-latest
@@ -16,6 +16,10 @@ jobs:
             os: macos-latest
           - build_target: windows
             os: windows-latest
+          - graphics: glow
+            renderer: opengl
+          - graphics: wgpu
+            renderer: "''" # Vulkan but we don't want this in the binary filename
     steps:
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -34,7 +38,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --features ${{ matrix.renderer }}
+          args: --release --features ${{ matrix.graphics }}
       - name: Renaming binaries
         run: rename uad_gui-${{ matrix.build_target }} uad_gui-${{ matrix.build_target }}-${{ matrix.renderer }} target/release/uad_gui*
       - name: Tarball Linux binaries
