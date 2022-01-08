@@ -3,7 +3,7 @@ on: workflow_dispatch
 
 jobs:
   build:
-    name: Building ${{ matrix.build_target }}
+    name: Building ${{ matrix.build_target }} [${{ matrix.graphics }}]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -34,7 +34,7 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get install -y libxkbcommon-dev lld
       - uses: actions/checkout@v2
-      - name: Cargo build [Vulkan]
+      - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
@@ -47,7 +47,7 @@ jobs:
         run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.build_target }}${{ matrix.renderer }}
       - name: Tarball Linux binaries
         if: matrix.os == 'ubuntu-latest'
-        run: tar -czf uad_gui-linux${{ matrix.renderer }}{.tar.gz,}
+        run: tar -czf target/release/uad_gui-linux${{ matrix.renderer }}{.tar.gz,}
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
