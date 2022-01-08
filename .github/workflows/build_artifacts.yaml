@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         build_target: [linux, macos, windows]
-        renderer: ['''', opengl]
+        renderer: ["''", opengl]
         include:
           - build_target: linux
             os: ubuntu-latest
