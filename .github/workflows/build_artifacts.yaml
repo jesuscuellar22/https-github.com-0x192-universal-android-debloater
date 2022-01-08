@@ -8,6 +8,7 @@ jobs:
     strategy:
       matrix:
         build_target: [linux, macos, windows]
+        renderer: ['', opengl]
         include:
           - build_target: linux
             os: ubuntu-latest
@@ -15,7 +16,6 @@ jobs:
             os: macos-latest
           - build_target: windows
             os: windows-latest
-
     steps:
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -30,30 +30,18 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get install -y libxkbcommon-dev lld
       - uses: actions/checkout@v2
-      - name: Cargo build (WGPU feature)
+      - name: Cargo build [Vulkan]
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
-      - name: Renaming
-        if: matrix.os == 'windows-latest'
-        run: mv target/release/uad_gui.exe target/release/uad_gui-${{ matrix.build_target }}.exe
-      - name: Renaming
-        if: matrix.os != 'windows-latest'
-        run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.build_target }}
-      - name: Cargo build (Glow feature)
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --features glow
-      - name: Renaming
-        if: matrix.os == 'windows-latest'
-        run: mv target/release/uad_gui.exe target/release/uad_gui-${{ matrix.build_target }}-opengl.exe
-      - name: Renaming
-        if: matrix.os != 'windows-latest'
-        run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.build_target }}-opengl
+          args: --release --features ${{ matrix.renderer }}
+      - name: Renaming binaries
+        run: rename uad_gui-${{ matrix.build_target }} uad_gui-${{ matrix.build_target }}-${{ matrix.renderer }} target/release/uad_gui*
+      - name: Tarball Linux binaries
+        if: matrix.os == 'ubuntu-latest'
+        run: tar -czf uad_gui-linux-${{ matrix.renderer }}.tar.gz uad_gui-linux-${{ matrix.renderer }}
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: uad_gui-${{ matrix.build_target }}
+          name: uad_gui-${{ matrix.build_target }}-${{ matrix.renderer }}
           path: target/release/uad_gui-${{ matrix.build_target }}*
