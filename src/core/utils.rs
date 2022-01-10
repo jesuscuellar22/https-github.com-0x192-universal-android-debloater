@@ -28,23 +28,26 @@ pub fn fetch_packages(
         description = "[No description]";
         uad_list = UadList::Unlisted;
         removal = Removal::Unlisted;
+        let t_p_name = p_name.trim_end();
 
-        if uad_lists.contains_key(p_name) {
-            description = match &uad_lists.get(p_name).unwrap().description {
+        if uad_lists.contains_key(t_p_name) {
+            description = match &uad_lists.get(t_p_name).unwrap().description {
                 Some(descr) => descr,
                 None => "[No description]",
             };
-            uad_list = uad_lists.get(p_name).unwrap().list;
-            removal = uad_lists.get(p_name).unwrap().removal;
+            uad_list = uad_lists.get(t_p_name).unwrap().list;
+            removal = uad_lists.get(t_p_name).unwrap().removal;
+        } else {
+            debug!("|{:?}| ", t_p_name);
         }
 
-        if enabled_system_packages.contains(p_name) {
+        if enabled_system_packages.contains(t_p_name) {
             state = PackageState::Enabled;
-        } else if disabled_system_packages.contains(p_name) {
+        } else if disabled_system_packages.contains(t_p_name) {
             state = PackageState::Disabled;
         }
 
-        let package_row = PackageRow::new(p_name, state, description, uad_list, removal, false);
+        let package_row = PackageRow::new(t_p_name, state, description, uad_list, removal, false);
         user_package.push(package_row);
     }
     user_package.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
