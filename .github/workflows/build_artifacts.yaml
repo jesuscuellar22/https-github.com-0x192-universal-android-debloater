@@ -10,9 +10,6 @@ jobs:
         build_target: [linux, macos, windows]
         graphics: [glow, wgpu]
         update_feature: [self-update, no-self-update]
-        exclude:
-          - build_target: windows
-          - update_feature: no-self-update
         include:
           - build_target: linux
             os: ubuntu-latest
