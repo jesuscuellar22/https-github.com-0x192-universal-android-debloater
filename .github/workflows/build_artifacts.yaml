@@ -25,9 +25,9 @@ jobs:
           - graphics: wgpu
             renderer: '' # Vulkan but we don't want this in the binary filename
           - update_feature: self-update
-            name: '' # we don't want this in the binary filename
+            update_name: '' # we don't want this in the binary filename
           - update_feature: no-self-update
-            name: 'noseflupdate'
+            update_name: "noseflupdate"
     steps:
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -52,10 +52,10 @@ jobs:
         run: mv target/release/uad_gui.exe target/release/uad_gui-${{ matrix.build_target }}${{ matrix.renderer }}.exe
       - name: Renaming binaries [Others]
         if: matrix.os != 'windows-latest'
-        run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.update_feature }}-${{ matrix.build_target }}${{ matrix.renderer }}
+        run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}
       - name: Tarball Linux and MacOS binaries
         if: matrix.os != 'windows-latest'
-        run: tar --remove-files -czf target/release/uad_gui-${{ matrix.update_feature }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
+        run: tar --remove-files -czf target/release/uad_gui-${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
