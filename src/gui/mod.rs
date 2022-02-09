@@ -3,24 +3,32 @@ pub mod views;
 pub mod widgets;
 
 pub use crate::core::sync::{get_device_list, Phone};
+use crate::core::uad_lists::load_debloat_lists;
 pub use crate::core::uad_lists::Package;
+use crate::core::update::{get_latest_release, SelfUpdateState, SelfUpdateStatus};
 use crate::core::utils::icon;
-use std::env;
-pub use views::about::About as AboutView;
-pub use views::list::{List as AppsView, Message as AppsMessage};
-pub use views::settings::{
-    Message as SettingsMessage, Phone as SettingsPhone, Settings as SettingsView,
-};
-
 use iced::{
     button, pick_list, window::Settings as Window, Alignment, Application, Button, Column, Command,
     Container, Element, Font, Length, PickList, Row, Settings, Space, Text,
+};
+use std::collections::HashMap;
+use std::env;
+use std::path::PathBuf;
+pub use views::about::{About as AboutView, Message as AboutMessage};
+pub use views::list::{
+    List as AppsView, LoadingState as ListLoadingState, Message as AppsMessage, State as ListState,
+};
+pub use views::settings::{
+    Message as SettingsMessage, Phone as SettingsPhone, Settings as SettingsView,
 };
 
 pub const ICONS: Font = Font::External {
     name: "Icons",
     bytes: include_bytes!("../../resources/assets/icons.ttf"),
 };
+
+#[cfg(feature = "self-update")]
+use crate::core::update::{bin_name, download_update_to_temp_file, remove_file};
 
 #[derive(Debug, Clone)]
 pub enum View {
@@ -37,6 +45,7 @@ impl Default for View {
 
 #[derive(Debug, Default)]
 pub struct UadGui {
+    ready: bool,
     view: View,
     apps_view: AppsView,
     about_view: AboutView,
@@ -55,15 +64,16 @@ pub enum Message {
     // Navigation Panel
     AboutPressed,
     SettingsPressed,
-    LoadDevices(usize),
     AppsPress,
-
     DeviceSelected(Phone),
+    AboutAction(AboutMessage),
     AppsAction(AppsMessage),
     SettingsAction(SettingsMessage),
     RefreshButtonPressed,
-    LoadDeviceList(Vec<Phone>),
-    Init(Vec<Phone>),
+    UadListsDownloaded(HashMap<String, Package>),
+    InitList,
+    InitDevice(Vec<Phone>),
+    _NewReleaseDownloaded(Result<(PathBuf, PathBuf), ()>),
 }
 
 impl Application for UadGui {
@@ -74,23 +84,40 @@ impl Application for UadGui {
     fn new(_flags: ()) -> (Self, Command<Message>) {
         (
             Self::default(),
-            Command::perform(get_device_list(), Message::Init),
+            Command::batch([
+                Command::perform(Self::download_uad_list(), |_| Message::InitList),
+                Command::perform(get_device_list(), Message::InitDevice),
+                Command::perform(Self::send_self_update_message(), Message::SettingsAction),
+            ]),
         )
     }
 
     fn title(&self) -> String {
         String::from("Universal Android Debloater")
     }
-
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Init(device_list) => {
-                self.device_list = device_list;
-                self.selected_device = Some(Phone::default());
-                Command::perform(Self::refresh(10), Message::LoadDevices)
+            Message::InitList => {
+                debug!("Trying to download remote UAD list");
+                self.apps_view.state = ListState::Loading(ListLoadingState::DownloadingList);
+                Command::perform(load_debloat_lists(true), Message::UadListsDownloaded)
             }
-            Message::LoadDeviceList(device_list) => {
+            Message::UadListsDownloaded(uad_lists) => {
+                self.apps_view.uad_lists = uad_lists;
+                if self.ready {
+                    Command::perform(
+                        Self::load_phone_packages(self.selected_device.clone().unwrap()),
+                        Message::AppsAction,
+                    )
+                } else {
+                    self.ready = true;
+                    self.apps_view.state = ListState::Loading(ListLoadingState::LoadingPackages);
+                    Command::none()
+                }
+            }
+            Message::InitDevice(device_list) => {
                 self.device_list = device_list;
+                self.settings_view.phone = SettingsPhone::default();
 
                 // Save the current selected device
                 let i = self
@@ -98,38 +125,34 @@ impl Application for UadGui {
                     .iter()
                     .position(|phone| *phone == self.selected_device.clone().unwrap_or_default())
                     .unwrap_or(0);
-                self.selected_device = Some(Phone::default());
-                Command::perform(Self::refresh(i), Message::LoadDevices)
-            }
-            Message::RefreshButtonPressed => {
-                self.apps_view.ready = false;
-                Command::batch([
-                    Command::perform(Self::please_wait(), Message::AppsAction),
-                    Command::perform(Self::device_lists(), Message::LoadDeviceList),
-                ])
-            }
-            Message::LoadDevices(last_selected_device) => {
-                self.settings_view.phone = SettingsPhone::default();
 
                 // Try to reload last selected phone
                 if !self.device_list.is_empty() {
-                    self.selected_device = match last_selected_device < self.device_list.len() {
-                        true => Some(self.device_list[last_selected_device].clone()),
+                    self.selected_device = match i < self.device_list.len() {
+                        true => Some(self.device_list[i].clone()),
                         false => match self.device_list.last() {
                             Some(last) => Some(last.clone()),
                             None => Some(Phone::default()),
                         },
                     };
-                    self.apps_view = AppsView::default();
                     self.view = View::List;
+                } else {
+                    self.selected_device = None;
+                }
+                if self.ready {
                     Command::perform(
                         Self::load_phone_packages(self.selected_device.clone().unwrap()),
                         Message::AppsAction,
                     )
                 } else {
-                    self.selected_device = None;
+                    self.ready = true;
                     Command::none()
                 }
+            }
+            Message::RefreshButtonPressed => {
+                self.apps_view.state = ListState::Loading(ListLoadingState::LoadingPackages);
+                self.ready = true;
+                Command::perform(get_device_list(), Message::InitDevice)
             }
             Message::AppsPress => {
                 self.view = View::List;
@@ -137,7 +160,8 @@ impl Application for UadGui {
             }
             Message::AboutPressed => {
                 self.view = View::About;
-                Command::none()
+                self.settings_view.self_update_state = SelfUpdateState::default();
+                Command::perform(Self::send_self_update_message(), Message::SettingsAction)
             }
             Message::SettingsPressed => {
                 self.view = View::Settings;
@@ -152,33 +176,145 @@ impl Application for UadGui {
                 )
                 .map(Message::AppsAction),
             Message::SettingsAction(msg) => {
-                self.settings_view.update(msg);
+                self.settings_view
+                    .update(&self.selected_device.clone().unwrap_or_default(), msg);
                 Command::none()
+            }
+            Message::AboutAction(msg) => {
+                self.about_view.update(msg.clone());
+
+                match msg {
+                    AboutMessage::UpdateUadLists => {
+                        Command::perform(Self::download_uad_list(), |_| Message::InitList)
+                    }
+                    AboutMessage::DoSelfUpdate => {
+                        #[cfg(feature = "self-update")]
+                        if self
+                            .settings_view
+                            .self_update_state
+                            .latest_release
+                            .is_some()
+                        {
+                            self.settings_view.self_update_state.status =
+                                SelfUpdateStatus::Updating;
+                            self.apps_view.state =
+                                ListState::Loading(ListLoadingState::_UpdatingUad);
+                            let bin_name = bin_name().to_owned();
+                            let release = self
+                                .settings_view
+                                .self_update_state
+                                .latest_release
+                                .as_ref()
+                                .unwrap()
+                                .clone();
+                            Command::perform(
+                                download_update_to_temp_file(bin_name, release),
+                                Message::_NewReleaseDownloaded,
+                            )
+                        } else {
+                            Command::none()
+                        }
+                        #[cfg(not(feature = "self-update"))]
+                        Command::none()
+                    }
+                    _ => Command::none(),
+                }
             }
             Message::DeviceSelected(device) => {
                 self.selected_device = Some(device);
-                self.apps_view = AppsView::default();
                 self.view = View::List;
                 Command::perform(
                     Self::load_phone_packages(self.selected_device.clone().unwrap()),
                     Message::AppsAction,
                 )
             }
+            Message::_NewReleaseDownloaded(_res) => {
+                debug!("UAD update has been download!");
+
+                #[cfg(feature = "self-update")]
+                match _res {
+                    Ok((relaunch_path, cleanup_path)) => {
+                        // Remove first arg, which is path to binary. We don't use this first
+                        // arg as binary path because it's not reliable, per the docs.
+                        let mut args = std::env::args();
+                        args.next();
+                        let mut args: Vec<_> = args.collect();
+
+                        // Remove the `--self-update-temp` arg from args if it exists,
+                        // since we need to pass it cleanly. Otherwise new process will
+                        // fail during arg parsing.
+                        if let Some(idx) = args.iter().position(|a| a == "--self-update-temp") {
+                            args.remove(idx);
+                            // Remove path passed after this arg
+                            args.remove(idx);
+                        }
+
+                        match std::process::Command::new(&relaunch_path)
+                            .args(args)
+                            .arg("--self-update-temp")
+                            .arg(&cleanup_path)
+                            .spawn()
+                        {
+                            Ok(_) => {
+                                if let Err(e) = remove_file(cleanup_path) {
+                                    error!("Could not remove temp update file: {}", e);
+                                }
+                                std::process::exit(0)
+                            }
+                            Err(error) => {
+                                if let Err(e) = remove_file(cleanup_path) {
+                                    error!("Could not remove temp update file: {}", e);
+                                }
+                                error!("Failed to update UAD: {}", error)
+                            }
+                        }
+                    }
+                    Err(()) => error!("Failed to update UAD!"),
+                }
+                Command::none()
+            }
         }
     }
 
     fn view(&mut self) -> Element<Message> {
-        let apps_btn = Button::new(&mut self.apps_btn, Text::new("Apps"))
-            .on_press(Message::AppsPress)
-            .padding(5)
-            .style(style::PrimaryButton(self.settings_view.theme.palette));
-
         let apps_refresh_btn = Button::new(&mut self.apps_refresh_btn, refresh_icon())
             .on_press(Message::RefreshButtonPressed)
             .padding(5)
             .style(style::RefreshButton(self.settings_view.theme.palette));
 
-        let uad_version = Text::new(env!("CARGO_PKG_VERSION"));
+        let uad_version_text = if let Some(r) = &self.settings_view.self_update_state.latest_release
+        {
+            if self.settings_view.self_update_state.status == SelfUpdateStatus::Updating {
+                Text::new("Updating please wait...")
+                    .color(self.settings_view.theme.palette.normal.surface)
+            } else {
+                Text::new(format!(
+                    "New UAD version available {} -> {}",
+                    env!("CARGO_PKG_VERSION"),
+                    r.tag_name
+                ))
+                .color(self.settings_view.theme.palette.normal.surface)
+            }
+        } else {
+            Text::new(env!("CARGO_PKG_VERSION"))
+        };
+
+        let apps_btn = if self
+            .settings_view
+            .self_update_state
+            .latest_release
+            .is_some()
+        {
+            Button::new(&mut self.apps_btn, Text::new("Update"))
+                .on_press(Message::AboutAction(AboutMessage::DoSelfUpdate))
+                .padding(5)
+                .style(style::SelfUpdateButton(self.settings_view.theme.palette))
+        } else {
+            Button::new(&mut self.apps_btn, Text::new("Apps"))
+                .on_press(Message::AppsPress)
+                .padding(5)
+                .style(style::PrimaryButton(self.settings_view.theme.palette))
+        };
 
         let about_btn = Button::new(&mut self.about_btn, Text::new("About"))
             .on_press(Message::AboutPressed)
@@ -206,7 +342,7 @@ impl Application for UadGui {
                 .push(apps_refresh_btn)
                 .push(device_picklist)
                 .push(Space::new(Length::Fill, Length::Shrink))
-                .push(uad_version)
+                .push(uad_version_text)
                 .push(apps_btn)
                 .push(about_btn)
                 .push(settings_btn),
@@ -217,7 +353,7 @@ impl Application for UadGui {
                 .push(apps_refresh_btn)
                 .push(Text::new("no devices/emulators found"))
                 .push(Space::new(Length::Fill, Length::Shrink))
-                .push(uad_version)
+                .push(uad_version_text)
                 .push(apps_btn)
                 .push(about_btn)
                 .push(settings_btn),
@@ -236,8 +372,14 @@ impl Application for UadGui {
                     &self.selected_device.clone().unwrap_or_default(),
                 )
                 .map(Message::AppsAction),
-            View::About => self.about_view.view(&self.settings_view),
-            View::Settings => self.settings_view.view().map(Message::SettingsAction),
+            View::About => self
+                .about_view
+                .view(&self.settings_view)
+                .map(Message::AboutAction),
+            View::Settings => self
+                .settings_view
+                .view(&self.selected_device.clone().unwrap_or_default())
+                .map(Message::SettingsAction),
         };
 
         Column::new()
@@ -273,14 +415,12 @@ impl UadGui {
         AppsMessage::LoadPackages
     }
 
-    pub async fn refresh(i: usize) -> usize {
-        i
+    pub async fn download_uad_list() -> Message {
+        Message::InitList
     }
-    pub async fn device_lists() -> Vec<Phone> {
-        get_device_list().await
-    }
-    pub async fn please_wait() -> AppsMessage {
-        AppsMessage::Nothing
+
+    pub async fn send_self_update_message() -> SettingsMessage {
+        SettingsMessage::GetLatestRelease(get_latest_release())
     }
 }
 
