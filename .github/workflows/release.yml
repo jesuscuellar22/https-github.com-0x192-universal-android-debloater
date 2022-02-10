@@ -48,7 +48,7 @@ jobs:
         if: ${{ matrix.target.os == 'macos-latest' }}
         run: |
           brew install gnu-tar
-          echo "/usr/local/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
+          alias tar=gtar
       - uses: actions/checkout@v2
       - name: Cargo build
         uses: actions-rs/cargo@v1
