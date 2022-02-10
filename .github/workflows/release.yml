@@ -44,11 +44,6 @@ jobs:
         run: |
           sudo apt-get -qq update
           sudo apt-get install -y libxkbcommon-dev lld
-      - name: Install gnu-tar for MacOS
-        if: ${{ matrix.target.os == 'macos-latest' }}
-        run: |
-          brew install gnu-tar
-          echo "/usr/local/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
       - uses: actions/checkout@v2
       - name: Cargo build
         uses: actions-rs/cargo@v1
@@ -61,11 +56,17 @@ jobs:
       - name: Renaming binaries [Others]
         if: matrix.os != 'windows-latest'
         run: mv target/release/uad_gui target/release/uad_gui${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}
-      - name: Tarball Linux and MacOS binaries
-        if: matrix.os != 'windows-latest'
+      - name: Tarball Linux binary
+        if: matrix.os ⁼= 'ubuntu-latest'
         run: |
           cd target/release/
           tar --remove-files -czf uad_gui${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
+      - name: Tarball MacOS binaries # --remove-files is not available on bsd tar
+        if: ${{ matrix.target.os == 'macos-latest' }}
+        run: |
+          brew install gnu-tar
+          cd target/release/
+          gtar --remove-files -czf uad_gui${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
       - name: Create pre-release
         uses: softprops/action-gh-release@v1
         with:
