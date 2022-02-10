@@ -67,5 +67,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: uad_gui-${{ matrix.build_target }}${{ matrix.renderer }}
-          path: target/release/uad_gui${{ matrix.update_name }}-${{ matrix.build_target }}*
+          name: uad_gui${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}
+          path: target/release/uad_gui-*
