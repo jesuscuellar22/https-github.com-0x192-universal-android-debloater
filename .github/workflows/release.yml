@@ -71,7 +71,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           body_path: ${{ github.workspace }}/CHANGELOG.md
-          files: target/release/uad_gui-*
+          files: target/release/uad_gui${{ matrix.update_name }}-${{ matrix.build_target }}*
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
