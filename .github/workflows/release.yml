@@ -44,6 +44,11 @@ jobs:
         run: |
           sudo apt-get -qq update
           sudo apt-get install -y libxkbcommon-dev lld
+      - name: Install gnu-tar for MacOS
+        if: ${{ matrix.target.os == 'macos-latest' }}
+        run: |
+          brew install gnu-tar
+          echo "/usr/local/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
       - uses: actions/checkout@v2
       - name: Cargo build
         uses: actions-rs/cargo@v1
