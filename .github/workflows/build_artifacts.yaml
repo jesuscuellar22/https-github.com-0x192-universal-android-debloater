@@ -60,9 +60,9 @@ jobs:
         run: mv target/release/uad_gui target/release/uad_gui-${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}
       - name: Tarball Linux and MacOS binaries
         if: matrix.os != 'windows-latest'
-        run: tar --remove-files -czf target/release/uad_gui-${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
+        run: tar --remove-files -czf -C target/release/uad_gui-${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: uad_gui-${{ matrix.build_target }}${{ matrix.renderer }}
-          path: target/release/uad_gui-${{ matrix.build_target }}*
+          path: target/release/uad_gui-*
