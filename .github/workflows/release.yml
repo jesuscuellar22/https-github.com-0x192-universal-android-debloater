@@ -65,7 +65,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           cd target/release/
-          tar --remove-files -czf uad_gui-linux${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
+          tar --remove-files -czf uad_gui-${{ matrix.update_name }}-${{ matrix.build_target }}${{ matrix.renderer }}{.tar.gz,}
       - name: Create pre-release
         uses: softprops/action-gh-release@v1
         with:
